@@ -19,7 +19,7 @@
 #
 # How to use in devcontainer.json:
 #   Add a post-createCommand or initializeCommand like:
-#   "postCreateCommand": "bash -c "curl -sSL https://raw.githubusercontent.com/RobinDeClerck/devcontainer/main/setup.sh | bash -s -- -p node"
+#   "postCreateCommand": "sh -c \"curl -sSL https://raw.githubusercontent.com/RobinDeClerck/devcontainer/main/setup.sh | sh -s -- -p node"
 #
 # Requirements:
 #   - Create a `.devcontainer/scripts/` folder in your project
@@ -94,7 +94,7 @@ parse_args() {
 ### DEPENDENCY CHECKS
 check_dependency() {
   if ! command -v "$1" >/dev/null 2>&1; then
-    echo "⚠️ Dependency '$1' is missing. Please install it first!"
+    echo "❌ Dependency '$1' is missing. Please install it first!"
     exit 1
   fi
 }
@@ -148,7 +148,17 @@ run_remote_script() {
 }
 
 run_local_scripts() {
-  local script_dir="$(cd "$(dirname "$0")/scripts" && pwd)"
+  local script_dir="/.devcontainer/scripts"
+
+  if [ ! -d "$script_dir" ]; then
+    echo "⚠️  No local scripts directory found at $script_dir. Skipping local scripts."
+    return 0
+  fi
+
+  if ! ls "$script_dir"/*.sh >/dev/null 2>&1; then
+    echo "⚠️  No local scripts found in $script_dir. Skipping local scripts."
+    return 0
+  fi
 
   for script in "$script_dir"/*.sh; do
     echo "⏳ Running local script $(basename "$script")"
@@ -206,11 +216,11 @@ print_banner() {
   printf '\n'
   print_line
 
-  # Get the project name from the parent directory
-  script_path="$(cd "$(dirname "$0")" && pwd)/$(basename "$0")"
-  project_name="$(basename "$(dirname "$(dirname "$script_path")")")"
-  # Capitalize words
-  display_name="$(echo "$project_name" | sed -E 's/(^|-)([a-z])/\U\2/g')" 
+  # Get project name from the current working directory
+  project_name="$(basename "$PWD")"
+  
+  # Capitalize words (e.g. my-project => My Project)
+  display_name="$(echo "$project_name" | sed -E 's/(^|-)([a-z])/\U\2/g' | sed 's/-/ /g')"
 
   figlet -c -f slant "$display_name" | lolcat
   figlet -c -f slant "Happy Coding!" | lolcat
@@ -251,6 +261,7 @@ main() {
 
   total_end=$(date +%s)
   total_duration=$((total_end - total_start))
+  echo
   echo "🕒 Setup completed in ${total_duration}s!"
 
   print_banner
