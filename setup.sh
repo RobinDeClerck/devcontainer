@@ -10,6 +10,123 @@
 # -----------------------------------------------------------------------------
 set -e
 
+### PARAMETERS
+HELP=0
+PRESET=""
+
+print_usage() {
+  echo "Usage: $0 [-p preset] [--preset=preset] [-h] [--help]"
+  echo
+  echo "Options:"
+  echo "  -p PRESET, --preset=PRESET    Select the preset to run (e.g. node, python)"
+  echo "  -h, --help                   Show this help message"
+}
+
+parse_args() {
+  HELP=0
+  PRESET=""
+
+  while getopts ":p:h" opt; do
+    case "$opt" in
+      p) PRESET="$OPTARG" ;;
+      h) HELP=1 ;;
+      \?) echo "Invalid option: -$OPTARG" >&2; print_usage; exit 1 ;;
+      :) echo "Option -$OPTARG requires an argument." >&2; print_usage; exit 1 ;;
+    esac
+  done
+
+  shift $((OPTIND - 1))
+
+  while [ "$#" -gt 0 ]; do
+    case "$1" in
+      --help) HELP=1; shift ;;
+      --preset=*) PRESET="${1#*=}"; shift ;;
+      --preset)
+        if [ -n "$2" ] && [ "${2#-}" = "$2" ]; then
+          PRESET="$2"
+          shift 2
+        else
+          echo "Error: --preset requires an argument" >&2
+          print_usage
+          exit 1
+        fi
+        ;;
+      *)
+        echo "Unknown option: $1" >&2
+        print_usage
+        exit 1
+        ;;
+    esac
+  done
+
+  [ "$HELP" -eq 1 ] && { print_usage; exit 0; }
+}
+
+### DEPENDENCY CHECKS
+check_dependency() {
+  if ! command -v "$1" >/dev/null 2>&1; then
+    echo "⚠️ Dependency '$1' is missing. Please install it first!"
+    exit 1
+  fi
+}
+
+check_dependencies() {
+  check_dependency curl
+  check_dependency jq
+
+  check_dependency free
+  check_dependency uptime
+
+  check_dependency lolcat
+  check_dependency figlet
+}
+
+### PRESET & REMOTE SCRIPT FUNCTIONS
+GITHUB_OWNER="RobinDeClerck"
+GITHUB_REPO="devcontainer"
+GITHUB_BRANCH="main"
+
+fetch_presets() {
+  curl -s "https://api.github.com/repos/$GITHUB_OWNER/$GITHUB_REPO/contents/scripts?ref=$GITHUB_BRANCH" \
+    | jq -r '.[] | select(.type=="dir") | .name'
+}
+
+preset_exists() {
+  fetch_presets | grep -qx "$1"
+}
+
+fetch_remote_scripts() {
+  curl -s "https://api.github.com/repos/$GITHUB_OWNER/$GITHUB_REPO/contents/scripts/$1?ref=$GITHUB_BRANCH" \
+    | jq -r '.[] | select(.type=="file") | .name'
+}
+
+run_remote_script() {
+  local preset="$1"
+  local script_name="$2"
+  local raw_url="https://raw.githubusercontent.com/$GITHUB_OWNER/$GITHUB_REPO/$GITHUB_BRANCH/scripts/$preset/$script_name"
+
+  echo "⏳ Running remote script $script_name from preset $preset"
+  if ! curl -s "$raw_url" | bash; then
+    echo "❌ Remote script $script_name failed."
+    exit 1
+  fi
+  echo "🎉 Remote script $script_name completed."
+}
+
+run_local_scripts() {
+  local script_dir="$(cd "$(dirname "$0")/scripts" && pwd)"
+
+  for script in "$script_dir"/*.sh; do
+    echo "⏳ Running local script $(basename "$script")"
+    if ! sh "$script"; then
+      echo "❌ Local script $(basename "$script") failed."
+      exit 1
+    fi
+    echo "🎉 Local script $(basename "$script") completed."
+  done
+}
+
+### UTITLS
 get_terminal_width() {
   tput cols 2>/dev/null || echo 80
 }
@@ -51,20 +168,6 @@ credits() {
   echo "Contact: robin.de.clerck@gmail.com"
 }
 
-check_dependency() {
-  if ! command -v "$1" >/dev/null 2>&1; then
-    echo "⚠️ Dependency '$1' is missing. Please install it first!"
-    exit 1
-  fi
-}
-
-check_dependencies() {
-  check_dependency lolcat
-  check_dependency figlet
-  check_dependency free
-  check_dependency uptime
-}
-
 print_banner() {
   printf '\n'
   print_line
@@ -81,36 +184,31 @@ print_banner() {
   print_line
 }
 
-run_script() {
-  script="$1"
-  echo "⏳ Executing $(basename "$script")"
-  start=$(date +%s)
-
-  if ! sh "$script"; then
-    echo "❌ Script $(basename "$script") failed! Exiting." >&2
-    exit 1
-  fi
-
-  end=$(date +%s)
-  duration=$((end - start))
-  echo "🎉 $(basename "$script") completed successfully in ${duration}s!"
-}
-
-run_all_scripts() {
-  script_dir="$(cd "$(dirname "$0")/scripts" && pwd)"
-  for script in "$script_dir"/*.sh; do
-    run_script "$script"
-  done
-}
-
+### MAIN
 main() {
+  parse_args "$@"
   check_dependencies
 
   print_info_block
   total_start=$(date +%s)
   echo "🚀 Starting dev container setup..."
 
-  run_all_scripts
+  if [ -n "$PRESET" ]; then
+    if ! preset_exists "$PRESET"; then
+      echo "❌ Preset '$PRESET' does not exist in remote repository."
+      echo "Available presets:"
+      fetch_presets | sed 's/^/  - /'
+      exit 1
+    fi
+
+    # Run remote scripts for the preset
+    remote_scripts=$(fetch_remote_scripts "$PRESET")
+    for script in $remote_scripts; do
+      run_remote_script "$PRESET" "$script"
+    done
+  fi
+
+  run_local_scripts
 
   total_end=$(date +%s)
   total_duration=$((total_end - total_start))
