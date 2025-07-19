@@ -1,13 +1,35 @@
 #!/bin/sh
-# -----------------------------------------------------------------------------
+# -------------------------------------------------------------------------------------------------
 # Script: setup.sh
-# Description: Dev container setup script that runs all initialization scripts,
-#              prints a cool banner, and shows timing info.
+# Description:
+#   Dev container setup script that runs initialization scripts from two sources:
+#     1. Remote presets (optional, based on -p parameter) (from a GitHub repo's scripts directory)
+#     2. Local scripts located in the .devcontainer/scripts folder
+#
+# Usage:
+#   ./setup.sh [-p preset] [--preset=preset] [-l] [--list-presets] [-h] [--help]
+#
+# Options:
+#   -p PRESET, --preset=PRESET
+#       Select a remote preset (e.g. node, python). Scripts from this preset will run first.
+#   -l, --list-presets
+#       List available remote presets and exit.
+#   -h, --help
+#       Show this help message and exit.
+#
+# How to use in devcontainer.json:
+#   Add a post-createCommand or initializeCommand like:
+#   "postCreateCommand": "bash -c "curl -sSL https://raw.githubusercontent.com/RobinDeClerck/devcontainer/main/setup.sh | bash -s -- -p node"
+#
+# Requirements:
+#   - Create a `.devcontainer/scripts/` folder in your project
+#   - Add shell scripts with a naming scheme that ensures alphabetical order of execution
+#     e.g. 001-install.sh, 002-configure.sh, 003-finish.sh
 #
 # Author: Robin De Clerck
 # Contact: robin.de.clerck@gmail.com
 # Created: 2025-07-19
-# -----------------------------------------------------------------------------
+# -------------------------------------------------------------------------------------------------
 set -e
 
 ### PARAMETERS
@@ -15,21 +37,24 @@ HELP=0
 PRESET=""
 
 print_usage() {
-  echo "Usage: $0 [-p preset] [--preset=preset] [-h] [--help]"
+  echo "Usage: $0 [-p preset] [--preset=preset] [-l] [--list-presets] [-h] [--help]"
   echo
   echo "Options:"
   echo "  -p PRESET, --preset=PRESET    Select the preset to run (e.g. node, python)"
+  echo "  -l, --list-presets            List available remote presets"
   echo "  -h, --help                   Show this help message"
 }
 
 parse_args() {
   HELP=0
   PRESET=""
+  LIST_PRESETS=0
 
-  while getopts ":p:h" opt; do
+  while getopts ":p:hl" opt; do
     case "$opt" in
       p) PRESET="$OPTARG" ;;
       h) HELP=1 ;;
+      l) LIST_PRESETS=1 ;;
       \?) echo "Invalid option: -$OPTARG" >&2; print_usage; exit 1 ;;
       :) echo "Option -$OPTARG requires an argument." >&2; print_usage; exit 1 ;;
     esac
@@ -40,6 +65,7 @@ parse_args() {
   while [ "$#" -gt 0 ]; do
     case "$1" in
       --help) HELP=1; shift ;;
+      --list-presets) LIST_PRESETS=1; shift ;;
       --preset=*) PRESET="${1#*=}"; shift ;;
       --preset)
         if [ -n "$2" ] && [ "${2#-}" = "$2" ]; then
@@ -59,7 +85,10 @@ parse_args() {
     esac
   done
 
-  [ "$HELP" -eq 1 ] && { print_usage; exit 0; }
+  if [ "$HELP" -eq 1 ]; then
+    print_usage
+    exit 0
+  fi
 }
 
 ### DEPENDENCY CHECKS
@@ -89,6 +118,11 @@ GITHUB_BRANCH="main"
 fetch_presets() {
   curl -s "https://api.github.com/repos/$GITHUB_OWNER/$GITHUB_REPO/contents/scripts?ref=$GITHUB_BRANCH" \
     | jq -r '.[] | select(.type=="dir") | .name'
+}
+
+list_presets() {
+  echo "Available remote presets:"
+  fetch_presets | sed 's/^/  - /'
 }
 
 preset_exists() {
@@ -187,6 +221,11 @@ print_banner() {
 ### MAIN
 main() {
   parse_args "$@"
+
+  if [ "$LIST_PRESETS" -eq 1 ]; then
+    list_presets
+    exit 0
+  fi
   check_dependencies
 
   print_info_block
