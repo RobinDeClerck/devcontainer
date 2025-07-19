@@ -11,6 +11,5 @@ elif [ -f "$REQ" ]; then
   echo "📦 $REQ_DEV not found, installing from $REQ"
   pip install -r "$REQ"
 else
-  echo "⚠️ No requirements file found."
-  exit 1
+  echo "⚠️  No requirements file found."
 fi
