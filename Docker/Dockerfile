@@ -4,7 +4,7 @@ FROM mcr.microsoft.com/vscode/devcontainers/base:alpine-3.21 AS builder
 RUN apk add --no-cache cmake build-base
 
 # bring in the stub sources
-COPY ./glibc-wrappers /tmp/wrappers
+COPY Docker/glibc-wrappers /tmp/wrappers
 WORKDIR /tmp/wrappers
 
 # build the shared lib
