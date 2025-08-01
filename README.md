@@ -76,3 +76,21 @@ This will download and run the setup script with the `node` preset.
    ```
    RUN apk add --no-cache npm -X http://dl-cdn.alpinelinux.org/alpine/edge/testing lolcat figlet
    ```
+
+---
+
+#### Release & Tagging
+- **Push to `main`** → builds Docker image with tag `latest`.
+
+##### Create a Versioned Tag
+```bash
+git tag alpine-3.21
+git push origin alpine-3.21
+```
+
+##### Overwrite a Tag
+```bash
+git tag -d alpine-3.21        # delete local
+git tag alpine-3.21           # recreate
+git push --force origin alpine-3.21
+```
