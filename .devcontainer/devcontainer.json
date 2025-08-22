@@ -1,0 +1,21 @@
+{
+  "name": "Project Dev Container",
+  "dockerComposeFile": [
+    "../docker-compose.yml",
+    "docker-compose.override.yml"
+  ],
+  "service": "project-dev",
+  "workspaceFolder": "/workspace/project",
+  "postCreateCommand": "sh <(curl -fsSL https://raw.githubusercontent.com/RobinDeClerck/devcontainer/main/setup.sh) -p node",
+  "customizations": {
+    "vscode": {
+      "extensions": [
+        "dracula-theme.theme-dracula",
+        "ms-azuretools.vscode-docker"
+      ],
+      "settings": {
+          "workbench.colorTheme": "Dracula Theme"
+      }
+    }
+  }
+}

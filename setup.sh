@@ -148,7 +148,7 @@ run_remote_script() {
 }
 
 run_local_scripts() {
-  local script_dir="/.devcontainer/scripts"
+  local script_dir=".devcontainer/scripts"
 
   if [ ! -d "$script_dir" ]; then
     echo "⚠️  No local scripts directory found at $script_dir. Skipping local scripts."
@@ -186,7 +186,7 @@ print_info_block() {
   local separator="$(printf '%*s' "$sep_len" '' | tr ' ' '-')"
 
   # Center the word "INFO"
-  local info="BASIC INFORMATION"
+  local info="DEV CONTAINER INFORMATION"
   local padding_left=$(( (sep_len - ${#info}) / 2 ))
   local padding_right=$(( sep_len - ${#info} - padding_left ))
 
@@ -194,13 +194,14 @@ print_info_block() {
   echo "$separator"
   printf "%*s%s%*s\n\n" "$padding_left" '' "$info" "$padding_right" ''
 
+  printf "%-20s %s\n" "Project:" "$(basename "$PWD")"
   printf "%-20s %s\n" "Time (UTC):" "$(date +"%Y-%m-%d %H:%M:%S")"
   printf "%-20s %s\n" "Host:" "$(hostname)"
   printf "%-20s %s\n" "User:" "$(whoami)"
   printf "%-20s %s\n" "Working directory:" "$(pwd)"
   printf '\n'
   printf "%-20s %s\n" "Memory usage:" "$(free -h | awk '/Mem:/ {print $3 " / " $2}')"
-  printf "%-20s %s\n" "Disk usage (root):" "$(df -h / | awk 'NR==2 {print $3 " used / " $2}')"
+  printf "%-20s %s\n" "Disk usage:" "$(df -h / | awk 'NR==2 {print $3 " used / " $2}')"
   printf "%-20s %s\n" "Uptime:" "$(uptime -p)"
   printf '\n'
   echo "$separator"
@@ -212,17 +213,16 @@ credits() {
   echo "Contact: robin.de.clerck@gmail.com"
 }
 
+print_header() {
+  local url="https://raw.githubusercontent.com/$GITHUB_OWNER/$GITHUB_REPO/$GITHUB_BRANCH/ascii/ghosts.txt"
+  curl -s "$url"
+  printf '\n'
+}
+
 print_banner() {
   printf '\n'
   print_line
 
-  # Get project name from the current working directory
-  project_name="$(basename "$PWD")"
-  
-  # Capitalize words (e.g. my-project => My Project)
-  display_name="$(echo "$project_name" | sed -E 's/(^|-)([a-z])/\U\2/g' | sed 's/-/ /g')"
-
-  figlet -c -f slant "$display_name" | lolcat
   figlet -c -f slant "Happy Coding!" | lolcat
 
   print_line
@@ -238,6 +238,9 @@ main() {
   fi
   check_dependencies
 
+  print_header
+  credits
+  
   print_info_block
   total_start=$(date +%s)
   echo "🚀 Starting dev container setup..."
@@ -265,7 +268,6 @@ main() {
   echo "🕒 Setup completed in ${total_duration}s!"
 
   print_banner
-  credits
 }
 
 main "$@"

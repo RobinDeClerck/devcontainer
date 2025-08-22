@@ -1,0 +1,8 @@
+services:
+  project-dev:
+    build:
+      context: .
+      dockerfile: .devcontainer/Dockerfile
+    volumes:
+      - .:/workspace/project
+    command: sleep infinity

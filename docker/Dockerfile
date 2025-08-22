@@ -4,7 +4,7 @@ FROM mcr.microsoft.com/vscode/devcontainers/base:alpine-3.21 AS builder
 RUN apk add --no-cache cmake build-base
 
 # bring in the stub sources
-COPY Docker/glibc-wrappers /tmp/wrappers
+COPY docker/glibc-wrappers /tmp/wrappers
 WORKDIR /tmp/wrappers
 
 # build the shared lib
@@ -32,6 +32,14 @@ RUN apk add --no-cache \
     libxtst \
     libxi \
     freetype
+
+# install FiraCode Nerd Font
+RUN apk add --no-cache fontconfig wget tar && \
+    mkdir -p /usr/share/fonts/nerd-fonts && \
+    wget -q https://github.com/ryanoasis/nerd-fonts/releases/latest/download/FiraCode.zip -O /tmp/FiraCode.zip && \
+    unzip -q /tmp/FiraCode.zip -d /usr/share/fonts/nerd-fonts && \
+    rm /tmp/FiraCode.zip && \
+    fc-cache -fv
 
 # copy only the built stub (no build tools)
 COPY --from=builder /tmp/wrappers/build/libwrapper64_glibc.so /lib/x64_libwrapper64_glibc.so

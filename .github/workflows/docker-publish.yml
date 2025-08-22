@@ -39,7 +39,7 @@ jobs:
         uses: docker/build-push-action@v4
         with:
           context: .
-          file: ./Docker/Dockerfile
+          file: ./docker/Dockerfile
           push: true
           tags: robindeclerck/devcontainer:${{ env.DOCKER_TAG }}
           platforms: linux/amd64,linux/arm64
