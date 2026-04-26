@@ -1,8 +1,8 @@
 services:
-  project-dev:
+  python-example-dev:
     build:
       context: .
       dockerfile: .devcontainer/Dockerfile
     volumes:
-      - .:/workspace/project
+      - .:/workspace/python-example
     command: sleep infinity

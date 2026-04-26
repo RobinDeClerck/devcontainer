@@ -1,0 +1,234 @@
+#!/usr/bin/env bash
+# terminal — print mascot + system info + daily tip + (optional) git info.
+set -euo pipefail
+
+LIB=/usr/local/share/devbase
+COLOR_MASCOT="${DEVBASE_BANNER_COLOR:-157}"
+COLOR_KEY=157
+COLOR_DIM=245
+
+# shellcheck source=/dev/null
+source "$LIB/sysinfo"
+
+# ---- ANSI ----------------------------------------------------------------
+ESC=$'\033'
+RST="${ESC}[0m"
+fg() { printf '%s[38;5;%sm' "$ESC" "$1"; }
+C_BORDER=$(fg "$COLOR_MASCOT")
+C_KEY=$(fg "$COLOR_KEY")
+
+# UTF-8-safe character repeater (tr is byte-based; don't use it here).
+repeat() {
+  local char=$1 count=$2 out=''
+  while (( count-- > 0 )); do out+=$char; done
+  printf '%s' "$out"
+}
+
+# Color every line of stdin individually (so gum join can't strip color).
+color_lines() {
+  local color=$1
+  while IFS= read -r line; do
+    printf '%s%s%s\n' "$color" "$line" "$RST"
+  done
+}
+
+# Pick today's tip — stable per day so the same line stays all day.
+pick_motd() {
+  local file=$LIB/motd
+  [ -r "$file" ] || return 0
+  local lines
+  mapfile -t lines < <(grep -vE '^\s*(#|$)' "$file")
+  (( ${#lines[@]} == 0 )) && return 0
+  local idx=$(( 10#$(date +%j) % ${#lines[@]} ))
+  printf '%s' "${lines[$idx]}"
+}
+
+# ---- gather git info -----------------------------------------------------
+# Sets GIT_ROWS as an array of "Key|Value" entries. Empty if not in a repo.
+GIT_ROWS=()
+collect_git() {
+  command -v git >/dev/null 2>&1 || return 0
+  git rev-parse --is-inside-work-tree >/dev/null 2>&1 || return 0
+
+  local branch sha subject status_count remote upstream ahead_behind
+
+  branch=$(git symbolic-ref --quiet --short HEAD 2>/dev/null \
+    || printf '(detached @ %s)' "$(git rev-parse --short HEAD)")
+
+  sha=$(git rev-parse --short HEAD 2>/dev/null || echo '-')
+  subject=$(git log -1 --pretty=%s 2>/dev/null || echo '-')
+  (( ${#subject} > 60 )) && subject="${subject:0:57}..."
+
+  status_count=$(git status --porcelain 2>/dev/null | wc -l | tr -d ' ')
+  if [ "$status_count" = "0" ]; then
+    status_count="clean"
+  else
+    status_count="$status_count change(s)"
+  fi
+
+  remote=$(git config --get remote.origin.url 2>/dev/null || echo '-')
+  (( ${#remote} > 60 )) && remote="...${remote: -57}"
+
+  upstream=$(git rev-parse --abbrev-ref --symbolic-full-name '@{u}' 2>/dev/null || true)
+  if [ -n "$upstream" ]; then
+    local ahead behind
+    read -r ahead behind < <(git rev-list --left-right --count "@{u}...HEAD" 2>/dev/null || echo "0 0")
+    ahead_behind="↑${behind} ↓${ahead} (${upstream})"
+  else
+    ahead_behind="no upstream"
+  fi
+
+  GIT_ROWS=(
+    "Branch|$branch"
+    "Commit|$sha — $subject"
+    "Status|$status_count"
+    "Upstream|$ahead_behind"
+    "Remote|$remote"
+  )
+}
+
+# ---- print plain key/value rows (no border) ------------------------------
+print_rows() {
+  local key_width=$1
+  shift
+  local row key val key_padded
+  for row in "$@"; do
+    key=${row%%|*}
+    val=${row#*|}
+    [ -z "$key$val" ] && { echo; continue; }
+    printf -v key_padded "%-${key_width}s" "$key"
+    printf '  %s%s%s  %s\n' "$C_KEY" "$key_padded" "$RST" "$val"
+  done
+}
+
+# ---- box renderer --------------------------------------------------------
+# render_box <header> <key_width> <h_pad> <row1> <row2> ...
+# Rows are "Key|Value", or "|" for a blank separator row.
+render_box() {
+  local header=$1 key_width=$2 h_pad=$3
+  shift 3
+  local rows=("$@")
+
+  # Compute content width.
+  local content_width=0 row val
+  for row in "${rows[@]}"; do
+    [ "$row" = "|" ] && continue
+    val=${row#*|}
+    (( ${#val} + key_width + 2 > content_width )) \
+      && content_width=$(( ${#val} + key_width + 2 ))
+  done
+
+  local header_min=$(( ${#header} + 6 ))
+  (( content_width < header_min )) && content_width=$header_min
+
+  local inner=$(( content_width + h_pad * 2 ))
+  local pad_h; pad_h=$(repeat ' ' "$h_pad")
+  local empty_row="${C_BORDER}│${RST}$(repeat ' ' "$inner")${C_BORDER}│${RST}"
+
+  # Top border.
+  local top_lhs="─ ${header} "
+  printf '%s╭%s%s╮%s\n' \
+    "$C_BORDER" "$top_lhs" "$(repeat '─' "$(( inner - ${#top_lhs} ))")" "$RST"
+
+  printf '%s\n' "$empty_row"
+
+  # Rows.
+  local key val_str key_padded trail content
+  for row in "${rows[@]}"; do
+    key=${row%%|*}
+    val_str=${row#*|}
+
+    if [ -z "$key$val_str" ]; then
+      printf '%s\n' "$empty_row"
+      continue
+    fi
+
+    printf -v key_padded "%-${key_width}s" "$key"
+    trail=$(repeat ' ' "$(( content_width - key_width - 2 - ${#val_str} ))")
+    content="${C_KEY}${key_padded}${RST}  ${val_str}${trail}"
+
+    printf '%s│%s%s%s│%s\n' \
+      "$C_BORDER" "$RST" \
+      "${pad_h}${content}${pad_h}" \
+      "$C_BORDER" "$RST"
+  done
+
+  printf '%s\n' "$empty_row"
+  printf '%s╰%s╯%s'  "$C_BORDER" "$(repeat '─' "$inner")" "$RST"
+}
+
+# ---- mascot --------------------------------------------------------------
+mascot_block=$(color_lines "$C_BORDER" < "$LIB/ascii/mascot")
+
+# ---- system info box -----------------------------------------------------
+SYS_ROWS=(
+  "Project|$PROJECT"
+  "Working directory|$CWD"
+  "|"
+  "User|$USER_NAME"
+  "Host|$HOST"
+  "Time (UTC)|$TIME_UTC"
+  "Uptime|$UPTIME_STR"
+  "|"
+  "Memory|$MEMORY"
+  "Disk|$DISK"
+)
+sys_box=$(render_box "system info" 18 2 "${SYS_ROWS[@]}")
+
+# ---- ssh agent sanity check ----------------------------------------------
+check_ssh_agent() {
+  command -v git >/dev/null 2>&1 || return 0
+  command -v ssh-add >/dev/null 2>&1 || return 0
+  git rev-parse --is-inside-work-tree >/dev/null 2>&1 || return 0
+
+  local remote
+  remote=$(git config --get remote.origin.url 2>/dev/null || true)
+  [[ "$remote" == git@* || "$remote" == ssh://* ]] || return 0
+
+  ssh-add -l >/dev/null 2>&1 && return 0
+
+  gum log --time rfc822 --level warn \
+    "no SSH keys forwarded — run on host: ssh-add ~/.ssh/id_ed25519, then rebuild the container"
+}
+
+# ---- git info ------------------------------------------------------------
+collect_git
+
+# ---- layout --------------------------------------------------------------
+term_cols=$(tput cols 2>/dev/null || echo 80)
+
+# ---- git info ------------------------------------------------------------
+if (( ${#GIT_ROWS[@]} > 0 )); then
+  gum log --time rfc822 --level info "found git, retrieving information..."
+  echo
+  print_rows 12 "${GIT_ROWS[@]}"
+  check_ssh_agent
+  echo
+fi
+
+# ---- presets -------------------------------------------------------------
+IFS=',' read -ra PRESETS <<< "${DEVBASE_PRESETS:-}"
+for p in "${PRESETS[@]}"; do
+  p=${p// /}
+  [ -z "$p" ] && continue
+  [ -r "$LIB/presets/$p.sh" ] || continue
+  bash "$LIB/presets/$p.sh" || gum log --level error "preset '$p' failed"
+done
+
+# ---- mascot + system info ------------------------------------------------
+gum style --bold --foreground "$COLOR_DIM" --align center \
+  "© RobinDeClerck · robin.de.clerck@gmail.com · github.com/RobinDeClerck/devcontainer"
+
+echo
+if [ "$term_cols" -ge 70 ]; then
+  gum join --horizontal --align center "$mascot_block" "  " "$sys_box"
+else
+  printf '%s\n\n%s\n' "$mascot_block" "$sys_box"
+fi
+echo
+
+# ---- motd ----------------------------------------------------------------
+motd=$(pick_motd)
+[ -n "$motd" ] && gum log --time rfc822 --level info "$motd"
+
+echo
