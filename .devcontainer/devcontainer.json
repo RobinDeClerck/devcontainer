@@ -4,16 +4,18 @@
     "context": "..",
     "dockerfile": "../devbase/Dockerfile"
   },
+  "features": {
+    "ghcr.io/devcontainers/features/git:1": {}
+  },
+  "containerEnv": {
+    "DEVBASE_PRESETS": "python"
+  },
+  "postAttachCommand": "bash -lc terminal",
   "customizations": {
     "vscode": {
       "settings": {
         "terminal.integrated.defaultProfile.linux": "bash"
       }
     }
-  },
-  "features": {
-    "ghcr.io/devcontainers/features/git:1": {}
-  },
-  "containerEnv": { "DEVBASE_PRESETS": "python" },
-  "postAttachCommand": "bash -lc terminal"
+  }
 }

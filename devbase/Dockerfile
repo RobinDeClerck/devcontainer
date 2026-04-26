@@ -4,6 +4,7 @@ FROM alpine:${ALPINE_VERSION}
 RUN apk add --no-cache \
       bash \
       ca-certificates \
+      openssh-client \
       gum \
       ncurses-terminfo-base
 
