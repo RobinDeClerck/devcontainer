@@ -1,0 +1,28 @@
+{
+  "name": "{{NAME}}",
+  "dockerComposeFile": [
+    "../docker-compose.yml",
+    "docker-compose.override.yml"
+  ],
+  "service": "{{SLUG}}-dev",
+  "workspaceFolder": "/workspace/{{SLUG}}",
+  "containerEnv": {
+    "DEVBASE_PRESETS": "{{PRESETS}}"
+  },
+  "features": {
+    "ghcr.io/devcontainers/features/git:1": {}
+  },
+  "postAttachCommand": "bash -lc terminal",
+  "customizations": {
+    "vscode": {
+      "settings": {
+        "terminal.integrated.defaultProfile.linux": "bash",
+        "terminal.integrated.fontFamily": "JetBrainsMono Nerd Font Mono",
+        "terminal.integrated.fontSize": 13
+      },
+      "extensions": [
+        "ms-azuretools.vscode-containers"
+      ]
+    }
+  }
+}

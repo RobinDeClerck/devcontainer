@@ -1,0 +1,8 @@
+services:
+  {{SLUG}}-dev:
+    build:
+      context: ..
+      dockerfile: .devcontainer/Dockerfile
+    volumes:
+      - ..:/workspace/{{SLUG}}
+    command: sleep infinity
