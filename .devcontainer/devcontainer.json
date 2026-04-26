@@ -14,7 +14,10 @@
         "terminal.integrated.defaultProfile.linux": "bash",
         "terminal.integrated.fontFamily": "JetBrainsMono Nerd Font Mono",
         "terminal.integrated.fontSize": 13
-      }
+      },
+      "extensions": [
+        "ms-azuretools.vscode-containers"
+      ]
     }
   }
 }
