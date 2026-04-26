@@ -1,0 +1,61 @@
+# Starship config for devbase — Dracula palette
+# green=#50fa7b  pink=#ff79c6  red=#ff5555  cyan=#8be9fd
+# purple=#bd93f9  comment=#6272a4  orange=#ffb86c  fg=#f8f8f2
+
+add_newline = false
+
+format = """
+$username\
+$directory\
+$git_branch\
+$git_status\
+$python\
+$nodejs\
+$cmd_duration\
+$character\
+"""
+
+[username]
+style_user  = "bold #50fa7b"
+style_root  = "bold #50fa7b"
+format      = "[$user]($style) [➜](bold #50fa7b) "
+show_always = true
+disabled    = false
+
+[character]
+success_symbol = '[\$](bold #50fa7b)'
+error_symbol   = '[\$](bold #ff5555)'
+
+[directory]
+style             = "bold #bd93f9"
+truncation_length = 4
+truncate_to_repo  = false
+read_only         = " "
+format            = "[$path]($style) "
+
+[git_branch]
+symbol = ""
+style  = "bold #ff5555"
+format = "[\\(](bold #8be9fd)[$branch]($style)[\\)](bold #8be9fd) "
+
+[git_status]
+style    = "#6272a4"
+format   = "[$ahead_behind]($style)"
+ahead    = "↑${count} "
+behind   = "↓${count} "
+diverged = "↕${ahead_count}↓${behind_count} "
+
+[python]
+symbol = " "
+style  = "#bd93f9"
+format = "[$symbol$version]($style) "
+
+[nodejs]
+symbol = " "
+style  = "#8be9fd"
+format = "[$symbol$version]($style) "
+
+[cmd_duration]
+min_time = 2000
+style    = "#ffb86c"
+format   = "[took $duration]($style) "

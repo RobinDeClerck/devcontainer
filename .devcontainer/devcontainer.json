@@ -7,14 +7,13 @@
   "features": {
     "ghcr.io/devcontainers/features/git:1": {}
   },
-  "containerEnv": {
-    "DEVBASE_PRESETS": "python"
-  },
   "postAttachCommand": "bash -lc terminal",
   "customizations": {
     "vscode": {
       "settings": {
-        "terminal.integrated.defaultProfile.linux": "bash"
+        "terminal.integrated.defaultProfile.linux": "bash",
+        "terminal.integrated.fontFamily": "JetBrainsMono Nerd Font Mono",
+        "terminal.integrated.fontSize": 13
       }
     }
   }
