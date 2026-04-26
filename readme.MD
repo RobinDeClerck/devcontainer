@@ -1,8 +1,10 @@
-# devbase
+# Devcontainer - devbase
 
 > _"It works on my machine."_ — Famous last words, before dev containers.
 
 A shared Alpine-based dev container image with a friendly terminal banner, [Starship](https://starship.rs) prompt, and language presets that auto-install dependencies on attach.
+
+![devbase terminal](docs/terminal.png)
 
 ## Use it
 
