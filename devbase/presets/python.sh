@@ -8,12 +8,12 @@ fi
 
 if [ -f requirements-dev.txt ]; then
   gum log --time rfc822 --level info "found requirements-dev.txt"
-  gum spin --spinner dot --title "installing requirements-dev.txt" -- \
-    pip install -q -r requirements-dev.txt
+  echo "installing requirements-dev.txt..."
+  pip install -q -r requirements-dev.txt || { gum log --time rfc822 --level error "pip install failed"; exit 1; }
 elif [ -f requirements.txt ]; then
   gum log --time rfc822 --level info "found requirements.txt"
-  gum spin --spinner dot --title "installing requirements.txt" -- \
-    pip install -q -r requirements.txt
+  echo "installing requirements.txt..."
+  pip install -q -r requirements.txt || { gum log --time rfc822 --level error "pip install failed"; exit 1; }
 else
   gum log --time rfc822 --level warn "no requirements file found"
 fi

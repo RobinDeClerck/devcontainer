@@ -14,9 +14,9 @@ fi
 gum log --time rfc822 --level info "found package.json"
 
 if [ -f package-lock.json ]; then
-  gum spin --spinner dot --title "installing dependencies (npm ci)" -- \
-    npm ci --silent
+  echo "installing dependencies (npm ci)..."
+  npm ci --silent || { gum log --time rfc822 --level error "npm ci failed"; exit 1; }
 else
-  gum spin --spinner dot --title "installing dependencies (npm install)" -- \
-    npm install --silent
+  echo "installing dependencies (npm install)..."
+  npm install --silent || { gum log --time rfc822 --level error "npm install failed"; exit 1; }
 fi
