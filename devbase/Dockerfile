@@ -7,7 +7,10 @@ RUN apk add --no-cache \
       openssh-client \
       gum \
       ncurses-terminfo-base \
-      starship
+      starship \
+      figlet \
+      ruby && \
+    gem install lolcat --no-document
 
 # terminal script + helpers (sysinfo, motd, ascii/) at the root.
 COPY devbase/terminal/ /usr/local/share/devbase/

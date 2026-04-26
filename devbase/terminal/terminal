@@ -197,6 +197,25 @@ collect_git
 # ---- layout --------------------------------------------------------------
 term_cols=$(tput cols 2>/dev/null || echo 80)
 
+# ---- git info ------------------------------------------------------------
+if (( ${#GIT_ROWS[@]} > 0 )); then
+  gum log --time rfc822 --level info "found git, retrieving information..."
+  echo
+  print_rows 12 "${GIT_ROWS[@]}"
+  check_ssh_agent
+  echo
+fi
+
+# ---- presets -------------------------------------------------------------
+IFS=',' read -ra PRESETS <<< "${DEVBASE_PRESETS:-}"
+for p in "${PRESETS[@]}"; do
+  p=${p// /}
+  [ -z "$p" ] && continue
+  [ -r "$LIB/presets/$p.sh" ] || continue
+  bash "$LIB/presets/$p.sh" || gum log --level error "preset '$p' failed"
+done
+
+# ---- mascot + system info ------------------------------------------------
 gum style --bold --foreground "$COLOR_DIM" --align center \
   "© RobinDeClerck · robin.de.clerck@gmail.com · github.com/RobinDeClerck/devcontainer"
 
@@ -208,22 +227,8 @@ else
 fi
 echo
 
+# ---- motd ----------------------------------------------------------------
 motd=$(pick_motd)
 [ -n "$motd" ] && gum log --time rfc822 --level info "$motd"
 
-if (( ${#GIT_ROWS[@]} > 0 )); then
-  echo
-  print_rows 12 "${GIT_ROWS[@]}"
-  check_ssh_agent
-fi
-
 echo
-
-# ---- presets -------------------------------------------------------------
-IFS=',' read -ra PRESETS <<< "${DEVBASE_PRESETS:-}"
-for p in "${PRESETS[@]}"; do
-  p=${p// /}
-  [ -z "$p" ] && continue
-  [ -r "$LIB/presets/$p.sh" ] || continue
-  bash "$LIB/presets/$p.sh" || gum log --level error "preset '$p' failed"
-done

@@ -1,8 +1,8 @@
 #!/usr/bin/env bash
 
 if ! command -v pip >/dev/null 2>&1; then
-  gum log --time rfc822 --level error "pip not installed — add to .devcontainer/devcontainer.json:"
-  gum style --foreground 245 '  "ghcr.io/devcontainers/features/python:1": {}'
+  gum log --time rfc822 --level error "pip not installed — add to your .devcontainer/Dockerfile:"
+  gum style --foreground 245 '  RUN apk add --no-cache python3 py3-pip'
   exit 0
 fi
 
