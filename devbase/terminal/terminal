@@ -197,6 +197,9 @@ collect_git
 # ---- layout --------------------------------------------------------------
 term_cols=$(tput cols 2>/dev/null || echo 80)
 
+gum log --time rfc822 --level info "Dev Container initialized 🎉"
+gum log --time rfc822 --level info "Peparing post attach commands..."
+
 # ---- git info ------------------------------------------------------------
 if (( ${#GIT_ROWS[@]} > 0 )); then
   gum log --time rfc822 --level info "found git, retrieving information..."

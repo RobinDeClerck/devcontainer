@@ -43,6 +43,18 @@ If a preset's runtime is missing, you get a friendly hint pointing at the Docker
 - `openssh-client`, `ca-certificates`
 - `terminal` — banner + system info + git info + daily tip on shell start
 
+## Command-line
+
+Scaffold a new project's `.devcontainer/` interactively:
+
+```bash
+bash -c "$(curl -fsSL "https://raw.githubusercontent.com/RobinDeClerck/devcontainer/main/templates/init.sh?$(date +%s)")"
+```
+
+Walks you through name, slug, and preset, then drops `.devcontainer/devcontainer.json`, `Dockerfile`, `docker-compose.override.yml`, and `docker-compose.yml` into the current directory.
+
+Requires [`gum`](https://github.com/charmbracelet/gum) — the script will offer to install it via Homebrew if missing.
+
 ## Develop
 
 ```bash
