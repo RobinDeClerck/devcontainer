@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# terminal — print mascot + system info + a daily tip on shell startup.
+# terminal — print mascot + system info + daily tip + (optional) git info.
 set -euo pipefail
 
 LIB=/usr/local/share/devbase
@@ -43,15 +43,125 @@ pick_motd() {
   printf '%s' "${lines[$idx]}"
 }
 
+# ---- gather git info -----------------------------------------------------
+# Sets GIT_ROWS as an array of "Key|Value" entries. Empty if not in a repo.
+GIT_ROWS=()
+collect_git() {
+  command -v git >/dev/null 2>&1 || return 0
+  git rev-parse --is-inside-work-tree >/dev/null 2>&1 || return 0
+
+  local branch sha subject status_count remote upstream ahead_behind
+
+  branch=$(git symbolic-ref --quiet --short HEAD 2>/dev/null \
+    || printf '(detached @ %s)' "$(git rev-parse --short HEAD)")
+
+  sha=$(git rev-parse --short HEAD 2>/dev/null || echo '-')
+  subject=$(git log -1 --pretty=%s 2>/dev/null || echo '-')
+  (( ${#subject} > 60 )) && subject="${subject:0:57}..."
+
+  status_count=$(git status --porcelain 2>/dev/null | wc -l | tr -d ' ')
+  if [ "$status_count" = "0" ]; then
+    status_count="clean"
+  else
+    status_count="$status_count change(s)"
+  fi
+
+  remote=$(git config --get remote.origin.url 2>/dev/null || echo '-')
+  (( ${#remote} > 60 )) && remote="...${remote: -57}"
+
+  upstream=$(git rev-parse --abbrev-ref --symbolic-full-name '@{u}' 2>/dev/null || true)
+  if [ -n "$upstream" ]; then
+    local ahead behind
+    read -r ahead behind < <(git rev-list --left-right --count "@{u}...HEAD" 2>/dev/null || echo "0 0")
+    ahead_behind="↑${behind} ↓${ahead} (${upstream})"
+  else
+    ahead_behind="no upstream"
+  fi
+
+  GIT_ROWS=(
+    "Branch|$branch"
+    "Commit|$sha — $subject"
+    "Status|$status_count"
+    "Upstream|$ahead_behind"
+    "Remote|$remote"
+  )
+}
+
+# ---- print plain key/value rows (no border) ------------------------------
+print_rows() {
+  local key_width=$1
+  shift
+  local row key val key_padded
+  for row in "$@"; do
+    key=${row%%|*}
+    val=${row#*|}
+    [ -z "$key$val" ] && { echo; continue; }
+    printf -v key_padded "%-${key_width}s" "$key"
+    printf '  %s%s%s  %s\n' "$C_KEY" "$key_padded" "$RST" "$val"
+  done
+}
+
+# ---- box renderer --------------------------------------------------------
+# render_box <header> <key_width> <h_pad> <row1> <row2> ...
+# Rows are "Key|Value", or "|" for a blank separator row.
+render_box() {
+  local header=$1 key_width=$2 h_pad=$3
+  shift 3
+  local rows=("$@")
+
+  # Compute content width.
+  local content_width=0 row val
+  for row in "${rows[@]}"; do
+    [ "$row" = "|" ] && continue
+    val=${row#*|}
+    (( ${#val} + key_width + 2 > content_width )) \
+      && content_width=$(( ${#val} + key_width + 2 ))
+  done
+
+  local header_min=$(( ${#header} + 6 ))
+  (( content_width < header_min )) && content_width=$header_min
+
+  local inner=$(( content_width + h_pad * 2 ))
+  local pad_h; pad_h=$(repeat ' ' "$h_pad")
+  local empty_row="${C_BORDER}│${RST}$(repeat ' ' "$inner")${C_BORDER}│${RST}"
+
+  # Top border.
+  local top_lhs="─ ${header} "
+  printf '%s╭%s%s╮%s\n' \
+    "$C_BORDER" "$top_lhs" "$(repeat '─' "$(( inner - ${#top_lhs} ))")" "$RST"
+
+  printf '%s\n' "$empty_row"
+
+  # Rows.
+  local key val_str key_padded trail content
+  for row in "${rows[@]}"; do
+    key=${row%%|*}
+    val_str=${row#*|}
+
+    if [ -z "$key$val_str" ]; then
+      printf '%s\n' "$empty_row"
+      continue
+    fi
+
+    printf -v key_padded "%-${key_width}s" "$key"
+    trail=$(repeat ' ' "$(( content_width - key_width - 2 - ${#val_str} ))")
+    content="${C_KEY}${key_padded}${RST}  ${val_str}${trail}"
+
+    printf '%s│%s%s%s│%s\n' \
+      "$C_BORDER" "$RST" \
+      "${pad_h}${content}${pad_h}" \
+      "$C_BORDER" "$RST"
+  done
+
+  printf '%s\n' "$empty_row"
+  printf '%s╰%s╯%s'  "$C_BORDER" "$(repeat '─' "$inner")" "$RST"
+}
+
 # ---- mascot --------------------------------------------------------------
 mascot_block=$(color_lines "$C_BORDER" < "$LIB/ascii/mascot")
 
-# ---- info rows -----------------------------------------------------------
-KEY_WIDTH=18
-H_PAD=2
-HEADER_LABEL="system info"
-
-ROWS=(
+# ---- system info box -----------------------------------------------------
+SYS_ROWS=(
   "Project|$PROJECT"
   "Working directory|$CWD"
   "|"
@@ -63,57 +173,10 @@ ROWS=(
   "Memory|$MEMORY"
   "Disk|$DISK"
 )
+sys_box=$(render_box "system info" 18 2 "${SYS_ROWS[@]}")
 
-# Visible content width: max of "<key padded>  <val>".
-content_width=0
-for row in "${ROWS[@]}"; do
-  [ "$row" = "|" ] && continue
-  val=${row#*|}
-  (( ${#val} + KEY_WIDTH + 2 > content_width )) \
-    && content_width=$(( ${#val} + KEY_WIDTH + 2 ))
-done
-
-header_min=$(( ${#HEADER_LABEL} + 6 ))
-(( content_width < header_min )) && content_width=$header_min
-
-inner=$(( content_width + H_PAD * 2 ))
-pad_h=$(repeat ' ' "$H_PAD")
-
-# ---- borders -------------------------------------------------------------
-top_lhs="─ ${HEADER_LABEL} "
-top_border="${C_BORDER}╭${top_lhs}$(repeat '─' "$(( inner - ${#top_lhs} ))")╮${RST}"
-bottom_border="${C_BORDER}╰$(repeat '─' "$inner")╯${RST}"
-empty_row="${C_BORDER}│${RST}$(repeat ' ' "$inner")${C_BORDER}│${RST}"
-
-# ---- row renderer --------------------------------------------------------
-render_row() {
-  local key=$1 val=$2
-
-  if [ -z "$key$val" ]; then
-    printf '%s\n' "$empty_row"
-    return
-  fi
-
-  local key_padded; printf -v key_padded "%-${KEY_WIDTH}s" "$key"
-  local trail; trail=$(repeat ' ' "$(( content_width - KEY_WIDTH - 2 - ${#val} ))")
-  local content="${C_KEY}${key_padded}${RST}  ${val}${trail}"
-
-  printf '%s│%s%s%s│%s\n' \
-    "$C_BORDER" "$RST" \
-    "${pad_h}${content}${pad_h}" \
-    "$C_BORDER" "$RST"
-}
-
-# ---- assemble ------------------------------------------------------------
-info_box=$(
-  printf '%s\n' "$top_border"
-  printf '%s\n' "$empty_row"
-  for row in "${ROWS[@]}"; do
-    render_row "${row%%|*}" "${row#*|}"
-  done
-  printf '%s\n' "$empty_row"
-  printf '%s'   "$bottom_border"
-)
+# ---- git info ------------------------------------------------------------
+collect_git
 
 # ---- layout --------------------------------------------------------------
 term_cols=$(tput cols 2>/dev/null || echo 80)
@@ -123,17 +186,27 @@ gum style --bold --foreground "$COLOR_DIM" --align center \
 
 echo
 if [ "$term_cols" -ge 70 ]; then
-  gum join --horizontal --align center "$mascot_block" "  " "$info_box"
+  gum join --horizontal --align center "$mascot_block" "  " "$sys_box"
 else
-  printf '%s\n\n%s\n' "$mascot_block" "$info_box"
+  printf '%s\n\n%s\n' "$mascot_block" "$sys_box"
 fi
 echo
 
 motd=$(pick_motd)
+[ -n "$motd" ] && gum log --time rfc822 --level info "$motd"
 
-[ -n "$motd" ] && gum log \
-  --time rfc822 \
-  --level info \
-  "$motd"
+if (( ${#GIT_ROWS[@]} > 0 )); then
+  echo
+  print_rows 12 "${GIT_ROWS[@]}"
+fi
 
 echo
+
+# ---- presets -------------------------------------------------------------
+IFS=',' read -ra PRESETS <<< "${DEVBASE_PRESETS:-}"
+for p in "${PRESETS[@]}"; do
+  p=${p// /}
+  [ -z "$p" ] && continue
+  [ -r "$LIB/presets/$p.sh" ] || continue
+  bash "$LIB/presets/$p.sh" || gum log --level error "preset '$p' failed"
+done
