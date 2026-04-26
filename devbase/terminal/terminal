@@ -1,0 +1,139 @@
+#!/usr/bin/env bash
+# terminal — print mascot + system info + a daily tip on shell startup.
+set -euo pipefail
+
+LIB=/usr/local/share/devbase
+COLOR_MASCOT="${DEVBASE_BANNER_COLOR:-157}"
+COLOR_KEY=157
+COLOR_DIM=245
+
+# shellcheck source=/dev/null
+source "$LIB/sysinfo"
+
+# ---- ANSI ----------------------------------------------------------------
+ESC=$'\033'
+RST="${ESC}[0m"
+fg() { printf '%s[38;5;%sm' "$ESC" "$1"; }
+C_BORDER=$(fg "$COLOR_MASCOT")
+C_KEY=$(fg "$COLOR_KEY")
+
+# UTF-8-safe character repeater (tr is byte-based; don't use it here).
+repeat() {
+  local char=$1 count=$2 out=''
+  while (( count-- > 0 )); do out+=$char; done
+  printf '%s' "$out"
+}
+
+# Color every line of stdin individually (so gum join can't strip color).
+color_lines() {
+  local color=$1
+  while IFS= read -r line; do
+    printf '%s%s%s\n' "$color" "$line" "$RST"
+  done
+}
+
+# Pick today's tip — stable per day so the same line stays all day.
+pick_motd() {
+  local file=$LIB/motd
+  [ -r "$file" ] || return 0
+  local lines
+  mapfile -t lines < <(grep -vE '^\s*(#|$)' "$file")
+  (( ${#lines[@]} == 0 )) && return 0
+  local idx=$(( 10#$(date +%j) % ${#lines[@]} ))
+  printf '%s' "${lines[$idx]}"
+}
+
+# ---- mascot --------------------------------------------------------------
+mascot_block=$(color_lines "$C_BORDER" < "$LIB/ascii/mascot")
+
+# ---- info rows -----------------------------------------------------------
+KEY_WIDTH=18
+H_PAD=2
+HEADER_LABEL="system info"
+
+ROWS=(
+  "Project|$PROJECT"
+  "Working directory|$CWD"
+  "|"
+  "User|$USER_NAME"
+  "Host|$HOST"
+  "Time (UTC)|$TIME_UTC"
+  "Uptime|$UPTIME_STR"
+  "|"
+  "Memory|$MEMORY"
+  "Disk|$DISK"
+)
+
+# Visible content width: max of "<key padded>  <val>".
+content_width=0
+for row in "${ROWS[@]}"; do
+  [ "$row" = "|" ] && continue
+  val=${row#*|}
+  (( ${#val} + KEY_WIDTH + 2 > content_width )) \
+    && content_width=$(( ${#val} + KEY_WIDTH + 2 ))
+done
+
+header_min=$(( ${#HEADER_LABEL} + 6 ))
+(( content_width < header_min )) && content_width=$header_min
+
+inner=$(( content_width + H_PAD * 2 ))
+pad_h=$(repeat ' ' "$H_PAD")
+
+# ---- borders -------------------------------------------------------------
+top_lhs="─ ${HEADER_LABEL} "
+top_border="${C_BORDER}╭${top_lhs}$(repeat '─' "$(( inner - ${#top_lhs} ))")╮${RST}"
+bottom_border="${C_BORDER}╰$(repeat '─' "$inner")╯${RST}"
+empty_row="${C_BORDER}│${RST}$(repeat ' ' "$inner")${C_BORDER}│${RST}"
+
+# ---- row renderer --------------------------------------------------------
+render_row() {
+  local key=$1 val=$2
+
+  if [ -z "$key$val" ]; then
+    printf '%s\n' "$empty_row"
+    return
+  fi
+
+  local key_padded; printf -v key_padded "%-${KEY_WIDTH}s" "$key"
+  local trail; trail=$(repeat ' ' "$(( content_width - KEY_WIDTH - 2 - ${#val} ))")
+  local content="${C_KEY}${key_padded}${RST}  ${val}${trail}"
+
+  printf '%s│%s%s%s│%s\n' \
+    "$C_BORDER" "$RST" \
+    "${pad_h}${content}${pad_h}" \
+    "$C_BORDER" "$RST"
+}
+
+# ---- assemble ------------------------------------------------------------
+info_box=$(
+  printf '%s\n' "$top_border"
+  printf '%s\n' "$empty_row"
+  for row in "${ROWS[@]}"; do
+    render_row "${row%%|*}" "${row#*|}"
+  done
+  printf '%s\n' "$empty_row"
+  printf '%s'   "$bottom_border"
+)
+
+# ---- layout --------------------------------------------------------------
+term_cols=$(tput cols 2>/dev/null || echo 80)
+
+gum style --bold --foreground "$COLOR_DIM" --align center \
+  "© RobinDeClerck · robin.de.clerck@gmail.com · github.com/RobinDeClerck/devcontainer"
+
+echo
+if [ "$term_cols" -ge 70 ]; then
+  gum join --horizontal --align center "$mascot_block" "  " "$info_box"
+else
+  printf '%s\n\n%s\n' "$mascot_block" "$info_box"
+fi
+echo
+
+motd=$(pick_motd)
+
+[ -n "$motd" ] && gum log \
+  --time rfc822 \
+  --level info \
+  "$motd"
+
+echo
