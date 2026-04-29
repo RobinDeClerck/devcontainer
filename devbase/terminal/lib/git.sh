@@ -59,6 +59,7 @@ check_ssh_agent() {
 
   ssh-add -l >/dev/null 2>&1 && return 0
 
+  echo
   gum log --time rfc822 --level warn \
     "no SSH keys forwarded — run on host: ssh-add ~/.ssh/id_ed25519, then rebuild the container"
 }
@@ -71,6 +72,5 @@ print_git_info() {
   gum log --time rfc822 --level info "found git, retrieving information..."
   echo
   print_rows 12 "${GIT_ROWS[@]}"
-  echo
   check_ssh_agent
 }
