@@ -12,7 +12,7 @@
   "features": {
     "ghcr.io/devcontainers/features/git:1": {}
   },
-  "postAttachCommand": "bash -lc terminal",
+  "postAttachCommand": "terminal",
   "customizations": {
     "vscode": {
       "settings": {
