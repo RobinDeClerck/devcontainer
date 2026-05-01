@@ -9,9 +9,6 @@
     "containerEnv": {
         "DEVBASE_PRESETS": "python"
     },
-    "features": {
-        "ghcr.io/devcontainers/features/git:1": {}
-    },
     "postAttachCommand": "terminal",
     "customizations": {
         "vscode": {

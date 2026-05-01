@@ -3,6 +3,7 @@ FROM alpine:${ALPINE_VERSION}
 
 RUN apk add --no-cache \
       bash \
+      git \
       nano \
       ca-certificates \
       openssh-client \

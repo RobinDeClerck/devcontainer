@@ -4,9 +4,6 @@
     "context": "..",
     "dockerfile": "../devbase/Dockerfile"
   },
-  "features": {
-    "ghcr.io/devcontainers/features/git:1": {}
-  },
   "postAttachCommand": "terminal",
   "customizations": {
     "vscode": {
