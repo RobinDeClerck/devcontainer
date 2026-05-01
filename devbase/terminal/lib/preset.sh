@@ -2,7 +2,7 @@
 # Exposes: load_presets(), print_presets_info()
 # Reads: DEVBASE_PRESETS (comma-separated), DEVBASE_PRESETS_DIR
 
-PRESETS_DIR="${DEVBASE_PRESETS_DIR:-/etc/devbase/presets}"
+PRESETS_DIR="${DEVBASE_PRESETS_DIR:-$DEVBASE/presets}"
 PRESET_NAMES=()   # populated by load_presets()
 
 # Parse DEVBASE_PRESETS and load each preset script.
