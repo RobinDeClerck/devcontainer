@@ -19,9 +19,8 @@ load_presets() {
   done
 
   if [ ${#PRESET_NAMES[@]} -eq 0 ]; then
-    gum log --time rfc822 --level debug "no presets set — skipping"
-    gum log --time rfc822 --level debug \
-      "tip: set presets in devcontainer.json e.g.: \"containerEnv\": {\"DEVBASE_PRESETS\": \"python\"}"
+    gum log --time rfc822 --level debug "no presets set, skipping..."
+    gum log --time rfc822 --level debug "presets can be set in devcontainer.json e.g.: \"containerEnv\": {\"DEVBASE_PRESETS\": \"python\"}"
     return 0
   fi
 
@@ -40,7 +39,4 @@ load_presets() {
 print_presets_info() {
   load_presets
   (( ${#PRESET_NAMES[@]} == 0 )) && return 0
-
-  gum log --time rfc822 --level info \
-    "loaded ${#PRESET_NAMES[@]} preset(s): ${PRESET_NAMES[*]}"
 }

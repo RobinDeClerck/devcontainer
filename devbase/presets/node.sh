@@ -18,13 +18,9 @@ if [ -f package.json ]; then
   fi
 
   gum log --time rfc822 --level info "installing dependencies ($cmd)..."
-  err=$(gum spin --spinner dot --title "$cmd" -- \
-    sh -c "$cmd --silent 2>&1 >/dev/null")
-
-  if [ $? -eq 0 ]; then
+  if $cmd; then
     gum log --time rfc822 --level info "installed node_modules"
   else
     gum log --time rfc822 --level error "$cmd failed"
-    echo "$err" >&2
   fi
 fi

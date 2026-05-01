@@ -17,13 +17,9 @@ fi
 
 if [ -n "$req_file" ]; then
   gum log --time rfc822 --level info "installing $req_file..."
-  err=$(gum spin --spinner dot --title "pip install -r $req_file" -- \
-    pip install -q -r "$req_file" 2>&1 >/dev/null)
-
-  if [ $? -eq 0 ]; then
+  if pip install -r "$req_file"; then
     gum log --time rfc822 --level info "installed $req_file"
   else
     gum log --time rfc822 --level error "pip install failed"
-    echo "$err" >&2
   fi
 fi
