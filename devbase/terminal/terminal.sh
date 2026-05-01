@@ -20,6 +20,7 @@ source "$LIB/lib/box.sh"
 source "$LIB/lib/sysinfo.sh"
 source "$LIB/lib/kuchipachi/greet.sh"
 source "$LIB/lib/git.sh"
+source "$LIB/lib/preset.sh"
 source "$LIB/lib/menu.sh"
 
 
@@ -29,16 +30,10 @@ C_KEY=$(fg "$COLOR_KEY")
 
 # ---- layout --------------------------------------------------------------
 term_cols=$(tput cols 2>/dev/null || echo 80)
-gum log --time rfc822 --level info "Dev Container initialized, peparing post attach commands..."
+gum log --time rfc822 --level info "dev container initialized, peparing post attach commands..."
 
 # ---- presets -------------------------------------------------------------
-IFS=',' read -ra PRESETS <<< "${DEVBASE_PRESETS:-}"
-for p in "${PRESETS[@]}"; do
-  p=${p// /}
-  [ -z "$p" ] && continue
-  [ -r "$PRESETS/$p.sh" ] || continue
-  bash "$PRESETS/$p.sh" || gum log --level error "preset '$p' failed"
-done
+print_presets_info
 
 # ---- git info ------------------------------------------------------------
 print_git_info
