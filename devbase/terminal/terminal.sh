@@ -10,6 +10,8 @@ COLOR_KUCHIPACHI="${DEVBASE_BANNER_COLOR:-157}"
 COLOR_KEY=157
 COLOR_DIM=245
 
+export TERM=xterm-256color
+
 # ---- load modules --------------------------------------------------------
 # Order matters: ansi → box → feature modules. sysinfo.sh populates the vars
 # the banner module reads.
