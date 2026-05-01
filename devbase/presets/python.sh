@@ -3,17 +3,27 @@
 if ! command -v pip >/dev/null 2>&1; then
   gum log --time rfc822 --level error "pip not installed — add to your .devcontainer/Dockerfile:"
   gum style --foreground 245 '  RUN apk add --no-cache python3 py3-pip'
-  exit 0
+  exit 1
 fi
 
+req_file=""
 if [ -f requirements-dev.txt ]; then
-  gum log --time rfc822 --level info "found requirements-dev.txt"
-  echo "installing requirements-dev.txt..."
-  pip install -q -r requirements-dev.txt || { gum log --time rfc822 --level error "pip install failed"; exit 1; }
+  req_file="requirements-dev.txt"
 elif [ -f requirements.txt ]; then
-  gum log --time rfc822 --level info "found requirements.txt"
-  echo "installing requirements.txt..."
-  pip install -q -r requirements.txt || { gum log --time rfc822 --level error "pip install failed"; exit 1; }
+  req_file="requirements.txt"
 else
   gum log --time rfc822 --level warn "no requirements file found"
+fi
+
+if [ -n "$req_file" ]; then
+  gum log --time rfc822 --level info "installing $req_file..."
+  err=$(gum spin --spinner dot --title "pip install -r $req_file" -- \
+    pip install -q -r "$req_file" 2>&1 >/dev/null)
+
+  if [ $? -eq 0 ]; then
+    gum log --time rfc822 --level info "installed $req_file"
+  else
+    gum log --time rfc822 --level error "pip install failed"
+    echo "$err" >&2
+  fi
 fi

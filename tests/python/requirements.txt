@@ -1,0 +1,12 @@
+# HTTP & async
+aiohttp>=3.9.0
+httpx>=0.27.0
+requests>=2.31.0
+
+# Data
+pydantic>=2.6.0
+python-dotenv>=1.0.0
+
+# Utils
+rich>=13.7.0
+tenacity>=8.2.0
