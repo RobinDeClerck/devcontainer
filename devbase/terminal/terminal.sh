@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # terminal — print kuchipachi + system info + daily tip + (optional) git info.
-set -euo pipefail
+set -uo pipefail
 
 DEVBASE=/usr/local/share/devbase
 LIB=$DEVBASE/terminal
