@@ -58,4 +58,4 @@ menu_items=(
   #"other"       "bash \$LIB/other/other.sh"
 )
 
-open_menu "${menu_items[@]}"
+open_menu --default "quit" "${menu_items[@]}"
