@@ -1,4 +1,4 @@
-# hooks.sh — run executable scripts from .devcontainer/pre-attach/ and post-attach/.
+# hooks.sh: run executable scripts from .devcontainer/pre-attach/ and post-attach/.
 # Exposes: run_pre_attach_hooks(), run_post_attach_hooks()
 # Reads: DEVBASE_HOOKS_DIR (overrides default), falls back to $PWD/.devcontainer
 

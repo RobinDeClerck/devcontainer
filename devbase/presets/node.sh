@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 
 if ! command -v npm >/dev/null 2>&1; then
-  gum log --time rfc822 --level error "npm not installed — add to your .devcontainer/Dockerfile:"
+  gum log --time rfc822 --level error "npm not installed, add to your .devcontainer/Dockerfile:"
   gum style --foreground 245 '  RUN apk add --no-cache npm'
   exit 1
 fi

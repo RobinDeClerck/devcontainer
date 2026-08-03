@@ -1,5 +1,5 @@
 #!/usr/bin/env bats
-# tests/terminal/preset.bats — unit tests for devbase/terminal/lib/preset.sh
+# tests/terminal/preset.bats: unit tests for devbase/terminal/lib/preset.sh
 #
 # Run from the repo root:
 #   bats tests/terminal/preset.bats
@@ -43,7 +43,7 @@ source_preset() {
 }
 
 # ---------------------------------------------------------------------------
-# load_presets — no presets set
+# load_presets: no presets set
 # ---------------------------------------------------------------------------
 
 @test "load_presets: does nothing when DEVBASE_PRESETS is unset" {
@@ -70,7 +70,7 @@ source_preset() {
 }
 
 # ---------------------------------------------------------------------------
-# load_presets — single preset
+# load_presets: single preset
 # ---------------------------------------------------------------------------
 
 @test "load_presets: runs a single preset script" {
@@ -103,7 +103,7 @@ source_preset() {
 }
 
 # ---------------------------------------------------------------------------
-# load_presets — multiple presets
+# load_presets: multiple presets
 # ---------------------------------------------------------------------------
 
 @test "load_presets: runs multiple presets in order" {

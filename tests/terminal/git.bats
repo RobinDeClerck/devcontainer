@@ -1,5 +1,5 @@
 #!/usr/bin/env bats
-# tests/terminal/git.bats — unit tests for devbase/terminal/lib/git.sh
+# tests/terminal/git.bats: unit tests for devbase/terminal/lib/git.sh
 #
 # Run from the repo root:
 #   bats tests/terminal/git.bats
@@ -52,7 +52,7 @@ source_git() {
 }
 
 # ---------------------------------------------------------------------------
-# collect_git — outside a repo
+# collect_git: outside a repo
 # ---------------------------------------------------------------------------
 
 @test "collect_git: produces no rows outside a git repo" {
@@ -63,7 +63,7 @@ source_git() {
 }
 
 # ---------------------------------------------------------------------------
-# collect_git — inside a repo
+# collect_git: inside a repo
 # ---------------------------------------------------------------------------
 
 @test "collect_git: populates GIT_ROWS inside a repo" {
@@ -122,7 +122,7 @@ source_git() {
   local commit_row val
   commit_row=$(printf '%s\n' "${GIT_ROWS[@]}" | grep '^Commit|')
   val="${commit_row#Commit|}"
-  # Subject portion (after "sha — ") should end in "..."
+  # Subject portion (after the sha) should end in "..."
   [[ "$val" == *"..."* ]]
 }
 
@@ -139,7 +139,7 @@ source_git() {
 }
 
 # ---------------------------------------------------------------------------
-# collect_git — no upstream
+# collect_git: no upstream
 # ---------------------------------------------------------------------------
 
 @test "collect_git: Upstream row shows 'no upstream' when none is set" {
@@ -152,7 +152,7 @@ source_git() {
 }
 
 # ---------------------------------------------------------------------------
-# collect_git — idempotency
+# collect_git: idempotency
 # ---------------------------------------------------------------------------
 
 @test "collect_git: can be called twice without duplicating rows" {

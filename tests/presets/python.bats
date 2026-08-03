@@ -1,5 +1,5 @@
 #!/usr/bin/env bats
-# tests/presets/python.bats — unit tests for devbase/presets/python.sh
+# tests/presets/python.bats: unit tests for devbase/presets/python.sh
 #
 # Run from the repo root:
 #   bats tests/presets/python.bats
@@ -18,13 +18,16 @@ setup() {
   export CMD_LOG="$TEST_DIR/commands.log"
   : > "$CMD_LOG"
 
-  # Stub gum so tests run without the real binary.
+  # Stub gum so tests run without the real binary. The stub mirrors the real
+  # streams: `gum log` writes to stderr, `gum style` writes to stdout.
   export GUM_LOG_FILE="$TEST_DIR/gum.log"
   gum() {
-    if [[ "$1" == "log" ]]; then
-      shift
-      echo "$*" >> "$GUM_LOG_FILE"
-    fi
+    local subcommand="$1"
+    shift
+    case "$subcommand" in
+      log)   echo "$*" >> "$GUM_LOG_FILE" ;;
+      style) echo "${@: -1}" ;;
+    esac
   }
   export -f gum
 

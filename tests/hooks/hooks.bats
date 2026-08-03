@@ -1,5 +1,5 @@
 #!/usr/bin/env bats
-# tests/hooks/hooks.bats — unit tests for devbase/terminal/lib/hooks.sh
+# tests/hooks/hooks.bats: unit tests for devbase/terminal/lib/hooks.sh
 #
 # Run from the repo root:
 #   bats tests/hooks/hooks.bats
@@ -184,7 +184,7 @@ source_hooks() {
   source_hooks
   run run_single_hook "post-attach" "$script"
   # run_single_hook logs the error but does not propagate the exit code
-  # (unlike _run_hooks which aborts the chain — single reruns are best-effort).
+  # (unlike _run_hooks which aborts the chain; single reruns are best-effort).
   [ "$status" -eq 0 ]
 }
 
@@ -259,7 +259,7 @@ source_hooks() {
 }
 
 # ---------------------------------------------------------------------------
-# run_post_attach_hooks — order and abort (mirrors pre-attach coverage)
+# run_post_attach_hooks: order and abort (mirrors pre-attach coverage)
 # ---------------------------------------------------------------------------
 
 @test "run_post_attach_hooks: runs multiple scripts in lexicographic order" {

@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# python preset — install project dependencies on attach.
+# python preset: install project dependencies on attach.
 #
 # Dependency source resolution, first match wins:
 #   1. uv.lock                       -> uv sync
@@ -19,8 +19,10 @@ log() {
   gum log --time rfc822 --level "$level" "$@"
 }
 
+# Diagnostics go to stderr, matching gum log, so that stdout stays free as the
+# return channel for functions like detect_source.
 hint() {
-  gum style --foreground 245 "  $1"
+  gum style --foreground 245 "  $1" >&2
 }
 
 has() {
@@ -37,7 +39,7 @@ require_pip() {
   if python3 -m pip --version >/dev/null 2>&1; then
     return 0
   fi
-  log error "pip not installed — add to your .devcontainer/Dockerfile:"
+  log error "pip not installed, add to your .devcontainer/Dockerfile:"
   hint 'RUN apk add --no-cache py3-pip'
   return 1
 }
@@ -64,7 +66,7 @@ detect_source() {
       echo uv
       return 0
     fi
-    log warn "uv.lock found but uv is not installed — add to your .devcontainer/Dockerfile:"
+    log warn "uv.lock found but uv is not installed, add to your .devcontainer/Dockerfile:"
     hint 'RUN apk add --no-cache uv'
   fi
 
@@ -73,7 +75,7 @@ detect_source() {
       echo poetry
       return 0
     fi
-    log warn "poetry project found but poetry is not installed — add to your .devcontainer/Dockerfile:"
+    log warn "poetry project found but poetry is not installed, add to your .devcontainer/Dockerfile:"
     hint 'RUN apk add --no-cache poetry'
   fi
 
@@ -112,7 +114,7 @@ install_requirements() {
 
 main() {
   if ! has python3; then
-    log error "python3 not installed — add to your .devcontainer/Dockerfile:"
+    log error "python3 not installed, add to your .devcontainer/Dockerfile:"
     hint 'RUN apk add --no-cache python3 py3-pip'
     return 1
   fi

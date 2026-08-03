@@ -1,6 +1,6 @@
 # Devcontainer - devbase
 
-> _"It works on my machine."_ — Famous last words, before dev containers.
+> _"It works on my machine."_ Famous last words, before dev containers.
 
 [![Publish image](https://github.com/komadori-dev/devbase/actions/workflows/publish.yml/badge.svg)](https://github.com/komadori-dev/devbase/actions/workflows/publish.yml) [![devcontainer](https://github.com/komadori-dev/devbase/actions/workflows/test-devcontainer.yml/badge.svg)](https://github.com/komadori-dev/devbase/actions/workflows/test-devcontainer.yml) [![BASH MENU/TERMINAL](https://github.com/komadori-dev/devbase/actions/workflows/test-terminal.yml/badge.svg)](https://github.com/komadori-dev/devbase/actions/workflows/test-terminal.yml)
 
@@ -18,7 +18,7 @@ bash -c "$(curl -fsSL "https://raw.githubusercontent.com/komadori-dev/devbase/ma
 
 Walks you through name, slug, and preset, then drops `.devcontainer/devcontainer.json`, `Dockerfile`, `docker-compose.override.yml`, and `docker-compose.yml` into the current directory.
 
-Requires [`gum`](https://github.com/charmbracelet/gum) — the script will offer to install it via Homebrew if missing.
+Requires [`gum`](https://github.com/charmbracelet/gum). The script will offer to install it via Homebrew if missing.
 
 ## How To Use It
 
@@ -61,7 +61,7 @@ your-project/
 
 | Preset   | What it does                                                                 |
 | -------- | ---------------------------------------------------------------------------- |
-| `python` | Installs from the project's dependency source — see the resolution order below. |
+| `python` | Installs from the project's dependency source; see the resolution order below. |
 | `node`   | Runs `npm ci` if `package-lock.json` exists, else `npm install`.             |
 
 If a preset's runtime is missing, you get a hint pointing at the Dockerfile line you need.
@@ -80,7 +80,7 @@ The first matching dependency source wins:
 
 A `pyproject.toml` that only carries tool config (`[tool.black]`, `[tool.ruff]`, …) is not treated as a dependency source, so projects that keep their pins in `requirements.txt` still resolve to pip.
 
-`uv` and `poetry` aren't in the image — add them in your Dockerfile if you use them. When a lockfile is present but its tool isn't installed, the preset logs a hint and falls through to the next source.
+`uv` and `poetry` aren't in the image, so add them in your Dockerfile if you use them. When a lockfile is present but its tool isn't installed, the preset logs a hint and falls through to the next source.
 
 Set `DEVBASE_PYTHON_EXTRAS` to install extras alongside a `pyproject.toml` project:
 
@@ -95,9 +95,9 @@ pip installs into the system interpreter: the image sets `PIP_ROOT_USER_ACTION=i
 
 ## Hooks
 
-Run your own scripts before or after presets by dropping executable `.sh` files into `.devcontainer/pre-attach/` or `.devcontainer/post-attach/`. They're discovered automatically — no config needed.
+Run your own scripts before or after presets by dropping executable `.sh` files into `.devcontainer/pre-attach/` or `.devcontainer/post-attach/`. They're discovered automatically; no config needed.
 
-Scripts run in lexicographic order. Use numeric prefixes (`01-`, `02-`) to control sequencing — zero-pad them so `09` sorts before `10`.
+Scripts run in lexicographic order. Use numeric prefixes (`01-`, `02-`) to control sequencing, and zero-pad them so `09` sorts before `10`.
 
 Only files with the executable bit set are run. Non-executable files are silently skipped, so you can safely keep a `README.md` or a disabled script in the folder without side effects.
 
@@ -112,13 +112,13 @@ DEBUG  discovered [2] pre-attach script(s)
 DEBUG  discovered [1] post-attach script(s)
 ```
 
-If a script exits non-zero, the run aborts immediately and logs an error — subsequent scripts in the same phase are skipped.
+If a script exits non-zero, the run aborts immediately and logs an error; subsequent scripts in the same phase are skipped.
 
 ## What's in the image
 
 - `bash`, `gum`, `starship`, `figlet`, `lolcat`
 - `openssh-client`, `ca-certificates`
-- `terminal` — banner + system info + git info + daily tip on shell start
+- `terminal`: banner + system info + git info + daily tip on shell start
 
 ## Testing
 
@@ -142,4 +142,4 @@ See [docs/TAG.MD](docs/TAG.MD) for tagging and publishing a release.
 
 ## License
 
-MIT — © Robin De Clerck
+MIT © Robin De Clerck

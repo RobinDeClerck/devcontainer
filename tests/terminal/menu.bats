@@ -1,5 +1,5 @@
 #!/usr/bin/env bats
-# tests/terminal/menu.bats — tests for the top-level and sub-menu item structure
+# tests/terminal/menu.bats: tests for the top-level and sub-menu item structure
 #                             built by _add_hook_menu in terminal.sh.
 #
 # Run from the repo root:
@@ -76,7 +76,7 @@ capture_sub_labels() {
 export -f capture_sub_labels
 
 # ---------------------------------------------------------------------------
-# Top-level menu — no hooks present
+# Top-level menu: no hooks present
 # ---------------------------------------------------------------------------
 
 @test "top-level menu: no hook phases added when no scripts exist" {
@@ -87,7 +87,7 @@ export -f capture_sub_labels
 }
 
 # ---------------------------------------------------------------------------
-# Top-level menu — ordering
+# Top-level menu: ordering
 # ---------------------------------------------------------------------------
 
 @test "top-level menu: pre-attach hooks entry added before post-attach hooks" {
@@ -113,7 +113,7 @@ export -f capture_sub_labels
 }
 
 # ---------------------------------------------------------------------------
-# Sub-menu — item content
+# Sub-menu: item content
 # ---------------------------------------------------------------------------
 
 @test "sub-menu: single script produces exactly that label and quit" {

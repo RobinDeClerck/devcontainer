@@ -1,4 +1,4 @@
-# presets.sh — load devbase presets from DEVBASE_PRESETS env var.
+# presets.sh: load devbase presets from DEVBASE_PRESETS env var.
 # Exposes: load_presets(), print_presets_info()
 # Reads: DEVBASE_PRESETS (comma-separated), DEVBASE_PRESETS_DIR
 

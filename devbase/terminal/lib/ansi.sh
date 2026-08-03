@@ -1,4 +1,4 @@
-# ansi.sh — ANSI color + text helpers.
+# ansi.sh: ANSI color + text helpers.
 # Exposes: RST, fg(), repeat(), color_lines()
 # Reads: (nothing)
 

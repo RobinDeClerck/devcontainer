@@ -1,4 +1,4 @@
-# git.sh — git repo info + SSH agent sanity check.
+# git.sh: git repo info + SSH agent sanity check.
 # Exposes: collect_git(), check_ssh_agent(), print_git_info()
 # Requires: ansi.sh, box.sh (for print_rows).
 # Sets: GIT_ROWS array (collect_git).
@@ -40,7 +40,7 @@ collect_git() {
 
   GIT_ROWS=(
     "Branch|$branch"
-    "Commit|$sha — $subject"
+    "Commit|$sha  $subject"
     "Status|$status_count"
     "Upstream|$ahead_behind"
     "Remote|$remote"
@@ -61,7 +61,7 @@ check_ssh_agent() {
 
   echo
   gum log --time rfc822 --level warn \
-    "no SSH keys forwarded — run on host: ssh-add ~/.ssh/id_ed25519, then rebuild the container"
+    "no SSH keys forwarded, run on host: ssh-add ~/.ssh/id_ed25519, then rebuild the container"
 }
 
 # High-level: collect, then print rows + run ssh check. No-op outside a repo.

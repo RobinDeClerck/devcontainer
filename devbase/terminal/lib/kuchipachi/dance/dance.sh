@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
-# dance.sh — kuchipachi dances inside concentric pulse rings, fullscreen.
+# dance.sh: kuchipachi dances inside concentric pulse rings, fullscreen.
 #
-# Frames live in ./frames/*.txt — drop in another file and it joins the loop
+# Frames live in ./frames/*.txt; drop in another file and it joins the loop
 # automatically (sorted by filename). Each frame should be the same shape.
 #
 # Controls:
@@ -39,7 +39,7 @@ KUCHI_FG="${ESC}[38;5;157m"
 HINT_FG="${ESC}[2;38;2;180;180;180m"  # dim grey for the quit hint overlay
 BLOCK="⣿"  # the only braille glyph we ever draw
 
-# Pastel ring palette — cycled per ring.
+# Pastel ring palette, cycled per ring.
 PALETTE=()
 _init_palette() {
   local rgbs=(
@@ -116,7 +116,7 @@ load_frames() {
 # DIST[y*cols + x] = Euclidean distance from cell (x,y) to screen center,
 # scaled ×10 and rounded to integer. Distance uses dy*2 to compensate for
 # the ~2:1 aspect ratio of terminal cells. Rebuilt only on resize, so the
-# per-frame inner loop is one array lookup — no math.
+# per-frame inner loop is one array lookup, no math.
 #
 # The build is offloaded to awk because bash's per-iteration arithmetic is
 # ~100× slower than awk for the same work, and a 200×60 grid is 12k cells.
@@ -167,7 +167,7 @@ render_frame() {
 
   # Halo radius: covers the sprite plus a few cells of breathing room.
   # The cache stores distances at ×10 scale with y doubled. The farthest
-  # sprite cell from center sits at (FRAME_W/2, FRAME_H/2) in cell units —
+  # sprite cell from center sits at (FRAME_W/2, FRAME_H/2) in cell units,
   # which is (FRAME_W/2, FRAME_H) after y-doubling. We approximate the
   # diagonal as max + min/2 (cheap, slightly generous, fine for a halo).
   local _hx=$(( FRAME_W / 2 ))

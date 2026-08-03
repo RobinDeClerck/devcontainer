@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# lib/menu.sh — reusable gum menu
+# lib/menu.sh: reusable gum menu
 #
 # Usage: open_menu [--default <label>] label1 cmd1 label2 cmd2 ...
 #

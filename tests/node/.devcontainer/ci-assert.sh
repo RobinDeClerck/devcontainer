@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# ci-assert.sh — run inside the container after postAttachCommand to verify
+# ci-assert.sh: run inside the container after postAttachCommand to verify
 # that terminal executed correctly. Exits non-zero on any failure.
 set -euo pipefail
 
@@ -34,7 +34,7 @@ assert "post-attach hook ran" "grep -q 'hello from post attach script' /tmp/devb
 # sysinfo box rendered
 assert "sysinfo box rendered" "grep -q 'system info' /tmp/devbase-ci.log"
 
-# node preset ran — node_modules should exist
+# node preset ran, so node_modules should exist
 assert "node preset ran" "[ -d /workspace/node-example/node_modules ]"
 
 # npm itself is available

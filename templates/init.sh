@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# devbase-init — scaffold a new project with a devbase devcontainer.
+# devbase-init: scaffold a new project with a devbase devcontainer.
 set -euo pipefail
 
 REPO="komadori-dev/devbase"
@@ -38,7 +38,7 @@ if ! command -v gum >/dev/null 2>&1; then
   echo "gum is required but not installed."
   if confirm "install with homebrew?" y; then
     command -v brew >/dev/null 2>&1 \
-      || die "homebrew not found — install gum manually: https://github.com/charmbracelet/gum"
+      || die "homebrew not found, install gum manually: https://github.com/charmbracelet/gum"
     brew install gum
   else
     die "gum required. install: https://github.com/charmbracelet/gum"
@@ -85,7 +85,7 @@ echo
 confirm "scaffold these files?" y || die "aborted by user"
 
 if [ -e .devcontainer ] || [ -e docker-compose.yml ]; then
-  confirm "existing .devcontainer/ or docker-compose.yml found — overwrite?" n \
+  confirm "existing .devcontainer/ or docker-compose.yml found, overwrite?" n \
     || die "aborted by user"
 fi
 

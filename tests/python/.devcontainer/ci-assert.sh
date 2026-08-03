@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# ci-assert.sh — run inside the container after postAttachCommand to verify
+# ci-assert.sh: run inside the container after postAttachCommand to verify
 # that terminal executed correctly. Exits non-zero on any failure.
 set -euo pipefail
 

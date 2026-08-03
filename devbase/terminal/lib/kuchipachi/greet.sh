@@ -1,10 +1,10 @@
-# greet.sh — kuchipachi art + system info box + daily tip (motd).
+# greet.sh: kuchipachi art + system info box + daily tip (motd).
 # Exposes: print_greet(), print_motd()
 # Requires: ansi.sh, box.sh, and sysinfo.sh to have been sourced (provides
 #           PROJECT, CWD, USER_NAME, HOST, TIME_UTC, UPTIME_STR, MEMORY, DISK).
 # Reads: $LIB, $C_BORDER, $COLOR_DIM, term_cols (set by orchestrator).
 
-# Pick today's tip — stable per day so the same line stays all day.
+# Pick today's tip, stable per day so the same line stays all day.
 pick_motd() {
   local file=$LIB/lib/kuchipachi/motd.txt
   [ -r "$file" ] || return 0

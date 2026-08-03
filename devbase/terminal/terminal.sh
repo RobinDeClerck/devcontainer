@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# terminal — print kuchipachi + system info + daily tip + (optional) git info.
+# terminal: print kuchipachi + system info + daily tip + (optional) git info.
 set -uo pipefail
 
 DEVBASE=/usr/local/share/devbase
@@ -53,7 +53,7 @@ echo
 
 # ---- menu ----------------------------------------------------------------
 # Skip in non-interactive environments (e.g. CI). Set DEVBASE_NO_MENU=1 to
-# run terminal headlessly — all hooks, presets, and banner still execute.
+# run terminal headlessly: all hooks, presets, and banner still execute.
 [[ "${DEVBASE_NO_MENU:-0}" == "1" ]] && exit 0
 menu_items=()
 

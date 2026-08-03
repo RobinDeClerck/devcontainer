@@ -1,4 +1,4 @@
-# box.sh — bordered box + plain key/value row rendering.
+# box.sh: bordered box + plain key/value row rendering.
 # Exposes: render_box(), print_rows()
 # Requires: ansi.sh (RST, fg, repeat) and the caller to set C_BORDER + C_KEY.
 
