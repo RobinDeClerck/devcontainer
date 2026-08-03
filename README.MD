@@ -127,7 +127,7 @@ The test suite runs automatically on every push and pull request via GitHub Acti
 | Workflow | What it tests |
 | -------- | ------------- |
 | `test-terminal` | Unit tests for the terminal lib (`hooks.sh`, `preset.sh`, `git.sh`) and the `python` preset's dependency resolution, using [bats](https://github.com/bats-core/bats-core) |
-| `test-devcontainer` | Integration tests that spin up the real devcontainer for both the `node` and `python` presets and assert the full attach flow |
+| `test-devcontainer` | Integration tests that build the image from the checkout, spin up the real devcontainer for both the `node` and `python` presets, and assert the full attach flow |
 
 To run the unit tests locally:
 

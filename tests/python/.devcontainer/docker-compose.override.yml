@@ -3,6 +3,8 @@ services:
     build:
       context: .
       dockerfile: .devcontainer/Dockerfile
+      args:
+        DEVBASE_IMAGE: ${DEVBASE_IMAGE:-ghcr.io/komadori-dev/devbase:latest}
     volumes:
       - .:/workspace/python-example
     command: sleep infinity

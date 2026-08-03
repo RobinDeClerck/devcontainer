@@ -5,11 +5,14 @@ on:
     branches: ["**"]
   pull_request:
 
-# Needed to pull the ghcr.io/komadori-dev/devbase image used by the
-# devcontainers under test.
 permissions:
   contents: read
-  packages: read
+
+# The devcontainers under test build FROM this image. Building it here rather
+# than pulling ghcr.io/komadori-dev/devbase:latest means changes to
+# devbase/Dockerfile and the presets are tested before they are published.
+env:
+  DEVBASE_IMAGE: devbase:ci
 
 jobs:
   devcontainer-python:
@@ -19,12 +22,8 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - name: Log in to GHCR
-        uses: docker/login-action@v3
-        with:
-          registry: ghcr.io
-          username: ${{ github.actor }}
-          password: ${{ secrets.GITHUB_TOKEN }}
+      - name: Build devbase image
+        run: docker build -t "$DEVBASE_IMAGE" -f devbase/Dockerfile .
 
       - name: Setup Node
         uses: actions/setup-node@v4
@@ -72,12 +71,8 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - name: Log in to GHCR
-        uses: docker/login-action@v3
-        with:
-          registry: ghcr.io
-          username: ${{ github.actor }}
-          password: ${{ secrets.GITHUB_TOKEN }}
+      - name: Build devbase image
+        run: docker build -t "$DEVBASE_IMAGE" -f devbase/Dockerfile .
 
       - name: Setup Node
         uses: actions/setup-node@v4

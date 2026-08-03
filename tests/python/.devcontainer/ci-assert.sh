@@ -39,6 +39,26 @@ assert "python preset ran"          "grep -q 'requirements-dev.txt' /tmp/devbase
 assert "dependencies installed"     "python3 -c 'import rich, httpx, pydantic'"
 assert "pip not blocked by PEP 668" "! grep -q 'externally-managed-environment' /tmp/devbase-ci.log"
 
+# The attached workspace exercises the requirements path, so build a throwaway
+# PEP 621 project to cover the pyproject.toml path in the same image.
+TOML_PROJECT="$(mktemp -d)"
+trap 'rm -rf "$TOML_PROJECT"' EXIT
+
+mkdir -p "$TOML_PROJECT/src/devbase_toml_example"
+touch "$TOML_PROJECT/src/devbase_toml_example/__init__.py"
+cat > "$TOML_PROJECT/pyproject.toml" << 'EOF'
+[project]
+name = "devbase-toml-example"
+version = "0.1.0"
+
+[build-system]
+requires = ["setuptools>=61"]
+build-backend = "setuptools.build_meta"
+EOF
+
+assert "pyproject.toml preset path installs" \
+  "(cd '$TOML_PROJECT' && bash /usr/local/share/devbase/presets/python.sh) && python3 -c 'import devbase_toml_example'"
+
 echo "-----------------------"
 echo "  ${PASS} passed, ${FAIL} failed"
 echo ""
