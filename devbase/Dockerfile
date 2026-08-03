@@ -28,4 +28,13 @@ RUN ln -s /usr/local/share/devbase/terminal/terminal.sh /usr/local/bin/terminal 
     echo 'eval "$(starship init bash)"'              >> /etc/bash/bashrc
 
 ENV SHELL=/bin/bash
+
+# The container is the environment, so pip installs system-wide: silence the
+# root-user warning and bypass the PEP 668 EXTERNALLY-MANAGED marker that
+# Alpine ships on py3-pip. Set here rather than in the python preset so manual
+# `pip install` in an attached shell behaves the same way.
+ENV PIP_ROOT_USER_ACTION=ignore \
+    PIP_BREAK_SYSTEM_PACKAGES=1 \
+    PIP_DISABLE_PIP_VERSION_CHECK=1
+
 CMD ["/bin/bash"]

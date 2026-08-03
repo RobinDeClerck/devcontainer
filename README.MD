@@ -36,8 +36,7 @@ Need extra tools? Extend it with a project-local Dockerfile:
 
 ```dockerfile
 FROM ghcr.io/komadori-dev/devbase:latest
-RUN apk add --no-cache python3 py3-pip && \
-    rm -f /usr/lib/python*/EXTERNALLY-MANAGED
+RUN apk add --no-cache python3 py3-pip
 ```
 
 ## Folder Structure
@@ -62,10 +61,37 @@ your-project/
 
 | Preset   | What it does                                                                 |
 | -------- | ---------------------------------------------------------------------------- |
-| `python` | Installs `requirements-dev.txt` if present, else `requirements.txt`.         |
+| `python` | Installs from the project's dependency source — see the resolution order below. |
 | `node`   | Runs `npm ci` if `package-lock.json` exists, else `npm install`.             |
 
 If a preset's runtime is missing, you get a hint pointing at the Dockerfile line you need.
+
+### `python`
+
+The first matching dependency source wins:
+
+| Source | Command |
+| ------ | ------- |
+| `uv.lock` | `uv sync` |
+| `poetry.lock` or `[tool.poetry]` | `poetry install` |
+| `pyproject.toml` with a `[project]` table | `pip install --editable .` |
+| `requirements-dev.txt` | `pip install --requirement requirements-dev.txt` |
+| `requirements.txt` | `pip install --requirement requirements.txt` |
+
+A `pyproject.toml` that only carries tool config (`[tool.black]`, `[tool.ruff]`, …) is not treated as a dependency source, so projects that keep their pins in `requirements.txt` still resolve to pip.
+
+`uv` and `poetry` aren't in the image — add them in your Dockerfile if you use them. When a lockfile is present but its tool isn't installed, the preset logs a hint and falls through to the next source.
+
+Set `DEVBASE_PYTHON_EXTRAS` to install extras alongside a `pyproject.toml` project:
+
+```jsonc
+"containerEnv": {
+  "DEVBASE_PRESETS": "python",
+  "DEVBASE_PYTHON_EXTRAS": "dev,test"  // pip install --editable ".[dev,test]"
+}
+```
+
+pip installs into the system interpreter: the image sets `PIP_ROOT_USER_ACTION=ignore` and `PIP_BREAK_SYSTEM_PACKAGES=1`, so the root-user warning and Alpine's PEP 668 `externally-managed-environment` error are handled for you, in the preset and in an attached shell alike. No venv, and nothing to add to your own Dockerfile.
 
 ## Hooks
 
@@ -100,14 +126,14 @@ The test suite runs automatically on every push and pull request via GitHub Acti
 
 | Workflow | What it tests |
 | -------- | ------------- |
-| `test-terminal` | Unit tests for the terminal lib (`hooks.sh`, `preset.sh`, `git.sh`) using [bats](https://github.com/bats-core/bats-core) |
+| `test-terminal` | Unit tests for the terminal lib (`hooks.sh`, `preset.sh`, `git.sh`) and the `python` preset's dependency resolution, using [bats](https://github.com/bats-core/bats-core) |
 | `test-devcontainer` | Integration tests that spin up the real devcontainer for both the `node` and `python` presets and assert the full attach flow |
 
 To run the unit tests locally:
 
 ```bash
 sudo apt-get install -y bats   # or: brew install bats-core
-bats tests/terminal/
+bats tests/terminal/ tests/presets/
 ```
 
 ## Develop

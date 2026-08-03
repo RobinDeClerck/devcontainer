@@ -29,3 +29,6 @@ jobs:
 
       - name: Run git tests
         run: bats tests/terminal/git.bats
+
+      - name: Run python preset tests
+        run: bats tests/presets/python.bats

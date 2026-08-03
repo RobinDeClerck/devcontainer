@@ -34,8 +34,10 @@ assert "post-attach hook ran" "grep -q 'hello from post attach script' /tmp/devb
 # sysinfo box rendered
 assert "sysinfo box rendered" "grep -q 'system info' /tmp/devbase-ci.log"
 
-# preset ran (pip should be available since the Dockerfile installs python3 + py3-pip)
-assert "python preset ran" "grep -q 'python' /tmp/devbase-ci.log"
+# preset resolved requirements-dev.txt and pip installed it despite PEP 668
+assert "python preset ran"          "grep -q 'requirements-dev.txt' /tmp/devbase-ci.log"
+assert "dependencies installed"     "python3 -c 'import rich, httpx, pydantic'"
+assert "pip not blocked by PEP 668" "! grep -q 'externally-managed-environment' /tmp/devbase-ci.log"
 
 echo "-----------------------"
 echo "  ${PASS} passed, ${FAIL} failed"
